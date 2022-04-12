@@ -136,3 +136,29 @@ void main()
 			}
 		}
 	}
+	// Remove the listening socket from the master file descriptor set and close it
+	// to prevent anyone else trying to connect.
+	FD_CLR(listening, &master);
+	closesocket(listening);
+	
+	// Message to let users know what's happening.
+	string msg = "Server is shutting down. Goodbye\r\n";
+
+	while (master.fd_count > 0)
+	{
+		// Get the socket number
+		SOCKET sock = master.fd_array[0];
+
+		// Send the goodbye message
+		send(sock, msg.c_str(), msg.size() + 1, 0);
+
+		// Remove it from the master file list and close the socket
+		FD_CLR(sock, &master);
+		closesocket(sock);
+	}
+
+	// Cleanup winsock
+	WSACleanup();
+
+	system("pause");
+}
